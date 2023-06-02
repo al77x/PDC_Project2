@@ -114,6 +114,7 @@ public class Game //Who Wants to Be a Millionaire game functionality
     */
     public void askQuestion()
     {
+        //select random question from current level
         if(questions.get(currentLevel).size() > 1)
         {
             questionNum = random.nextInt(questions.get(currentLevel).size());
@@ -126,8 +127,51 @@ public class Game //Who Wants to Be a Millionaire game functionality
         
         selectedQuestion = (Question) questions.get(currentLevel).get(questionNum);
         
+        window.setQuestionText(selectedQuestion.getQuestions());
         
+        for(int i = 0; i < window.qButtons.size(); i++)
+        {
+            window.qButtons.get(i).setText((i+1) + ") " + selectedQuestion.getAnswers()[i]);
+        }
         
+        window.setPrize("For " + prize[prizeAmount]);
+    }
+    
+    /*
+    asks a specific question to the player
+    */
+    public void askSpecificQuestion(int specificQNum)
+    {
+        selectedQuestion = (Question) questions.get(currentLevel).get(specificQNum);
+        
+        window.setQuestionText(selectedQuestion.getQuestions());
+        
+        for (int i = 0; i < window.qButtons.size(); i++)
+        {
+            window.qButtons.get(i).setText((i+1) + ") " + selectedQuestion.getAnswers());
+        }
+    }
+    
+    /*
+    check user answer against correct answer
+    if user gets it right they progress to the next level
+    the question is removed from the list so it can't be asked again
+    if wrong, end program
+    */
+    public void checkAnswer(int userAnswer)
+    {
+        if (userAnswer == selectedQuestion.getCorrectAnswer())
+        {
+            safeHaven();
+            questions.get(currentLevel).remove(questionNum);
+            
+            askQuestion();
+        }
+        else
+        {
+            lost = true;
+            end();
+        }
     }
     
     /*
