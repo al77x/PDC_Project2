@@ -7,6 +7,8 @@ package PDC_Project1;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
+import javax.swing.JButton;
+import javax.swing.table.DefaultTableModel;
 
 /**
  *
@@ -30,6 +32,7 @@ public class Game //Who Wants to Be a Millionaire game functionality
     FileSaveScores scoreData = new FileSaveScores(); 
     private int questionNum;
     public Question selectedQuestion;
+    private GUI window;
     
     //conditions for the game state
     private boolean walkedAway;
@@ -62,7 +65,40 @@ public class Game //Who Wants to Be a Millionaire game functionality
         lost = false;
  
         //load the scoreboard
-        scoreData.getScores();
+        //scoreData.getScores();
+        
+        window = new GUI();
+        window.setVisible(true);
+        window.setGame(this);
+    }
+    
+    public void resetGame()
+    {
+        currentLevel = 0; //restart level and progress
+        questionNum = 0;
+        levelProgress = 1;
+        playing = true;
+        prizeAmount = 0;
+        
+        //lifelines
+        AskTheAudience = new AskTheAudience();
+        PhoneAFriend = new PhoneAFriend();
+        FiftyFifty = new FiftyFifty();
+        
+        //set to false at start
+        walkedAway = false;
+        won = false;
+        lost = false;
+        
+        DefaultTableModel dtm = (DefaultTableModel) window.jTable1.getModel();
+        dtm.setRowCount(0);
+        dtm.setColumnCount(0);
+        
+        for(JButton btnLifeline : window.btnLifelines)
+        {
+            btnLifeline.setEnabled(true);
+        }
+        
     }
 
     //getters
@@ -89,6 +125,8 @@ public class Game //Who Wants to Be a Millionaire game functionality
         }
         
         selectedQuestion = (Question) questions.get(currentLevel).get(questionNum);
+        
+        
         
     }
     
