@@ -44,6 +44,16 @@ public class Question
     {
         return correctAnswer;
     }
+
+    public String getQuestions() 
+    {
+        return questions;
+    }
+
+    public String[] getAnswers() 
+    {
+        return answers;
+    }
     
     //displays a question and its answer choices 
     public void printQuestion()
