@@ -6,6 +6,10 @@ package PDC_Project1;
 
 import java.util.ArrayList;
 import java.util.Random;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 
 /**
  *
@@ -18,9 +22,11 @@ public class PhoneAFriend extends Lifeline
     {
         if(super.getUsed()) //check to see if the lifeline has been used, it can only be used once
         {
-            System.out.println("Phone a friend has already been used! Select a different lifeline or answer the question.");
+            JOptionPane.showMessageDialog(null, "Phone a friend has already been used! Select a different lifeline or answer the question.");
             return -1;
         }
+        
+        String text1 = "Your friend answered the phone!";
         
         //different responses to generate when using this lifeline
         ArrayList<String> responses = new ArrayList();
@@ -32,10 +38,11 @@ public class PhoneAFriend extends Lifeline
         responses.add("Don't get mad at me if I get this wrong, but I think it's ");
         
         Random random = new Random();
-
-        //selects a random response from the list using Random
-        String reply = responses.get(random.nextInt(responses.size()));
         
+        String reply = "\"";
+        //selects a random response from the list using Random
+        reply = reply + responses.get(random.nextInt(responses.size()));
+  
         //answer the friend will give
         int answer = -1;
         
@@ -59,12 +66,15 @@ public class PhoneAFriend extends Lifeline
             }
         }
         
-        reply = reply + answer;
+        reply = reply + answer + "\"";
         
-        System.out.println("\nYour friend picked up their phone!\n");
-        System.out.println("Friend: " + reply);
+        JPanel display = new JPanel();
+        display.setLayout(new BoxLayout(display, BoxLayout.Y_AXIS));
         
-        System.out.println("\nEnter your answer now: ");
+        display.add(new JLabel(text1));
+        display.add(new JLabel(reply));
+        
+        JOptionPane.showMessageDialog(null, display);
         
         super.setUsed(); //call method so that lifeline cannot be activated again
         
