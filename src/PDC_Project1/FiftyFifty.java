@@ -5,6 +5,10 @@
 package PDC_Project1;
 
 import java.util.Random;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 
 /**
  *
@@ -17,12 +21,15 @@ public class FiftyFifty extends Lifeline
     {
         if(super.getUsed()) //check to see if the lifeline has been used, it can only be used once
         {
-            System.out.println("You've already used your 50:50. Select a different Lifeline from the options or answer the question.");
+            JOptionPane.showMessageDialog(null, "You've already used your 50:50. Select a different Lifeline from the options or answer the question.");
             return -1;
         }
         
         //otherwise if it has not been used, the lifeline is being used in this scenario
-        System.out.println("\nYou have used the 50:50 lifeline! Two answers have been removed from the options.\n");
+
+        String text1 = "You have used the 50:50 lifeline!";
+        String text2 = "Two answers have been removed from the options.";
+        
         Random random = new Random();
         
         int remove1 = 0;
@@ -53,9 +60,13 @@ public class FiftyFifty extends Lifeline
         question.setAnswers(remove1, "");
         question.setAnswers(remove2, "");
         
-        question.printQuestion();
+        JPanel display = new JPanel();
+        display.setLayout(new BoxLayout(display, BoxLayout.Y_AXIS));
         
-        System.out.println("\nEnter your answer now: ");
+        display.add(new JLabel(text1));
+        display.add(new JLabel(text2));
+        
+        JOptionPane.showMessageDialog(null, display);
         
         super.setUsed(); //call method so that lifeline cannot be activated again
         
