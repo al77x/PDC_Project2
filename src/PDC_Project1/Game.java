@@ -28,6 +28,8 @@ public class Game //Who Wants to Be a Millionaire game functionality
     private int lifelinesUsed; // check lifelines used
     private int questionCounter = 0; //displays how many questions so far
     FileSaveScores scoreData = new FileSaveScores(); 
+    private int questionNum;
+    public Question selectedQuestion;
     
     //conditions for the game state
     private boolean walkedAway;
@@ -76,24 +78,18 @@ public class Game //Who Wants to Be a Millionaire game functionality
     */
     public void askQuestion()
     {
-        //Text dialog to display the options
-        System.out.println("+--------------------------------------------------------------------------------+");
-        System.out.println("|BUTTONS: 1-4 ANSWER QUESTION | 5 = WALK AWAY | 6 = 50:50 | 7 = PHONE A FRIEND | 8 = ASK THE AUDIENCE |");
-        System.out.println("+--------------------------------------------------------------------------------+");
-
-        System.out.println("\nTo take home " + prize[prizeAmount] + "\n");
+        if(questions.get(currentLevel).size() > 1)
+        {
+            questionNum = random.nextInt(questions.get(currentLevel).size());
+        }
+        else
+        {
+            questionNum = 0;
+            safeHaven();
+        }
         
-        //add question counter
-        questionCounter++;
-        System.out.println("QUESTION " + questionCounter + ":\n");
-
-        //select random questions from current level
-        int questionNumber = random.nextInt(questions.get(currentLevel).size());
-        Question selectQuestion = (Question) questions.get(currentLevel).get(questionNumber);
+        selectedQuestion = (Question) questions.get(currentLevel).get(questionNum);
         
-        //prints the question
-        selectQuestion.printQuestion();
-        displayAnswer(selectQuestion, questionNumber);
     }
     
     /*
