@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
 import javax.swing.JButton;
+import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -174,82 +175,33 @@ public class Game //Who Wants to Be a Millionaire game functionality
         }
     }
     
-    /*
-    scans player's input and checks if its valid
-    call lifelines when needed and inputs answer again
-    an invalid input prompt will display if necessary
-    */
-    private void displayAnswer(Question selectQuestion, int questionNumber)
+   
+    
+    public void useLifeLine(char lifeline)
     {
-        int playerInput = -1;
-        
-        while(playerInput == -1)
+        switch(lifeline)
         {
-            try //catches exceptions
-            {
-                System.out.print(">");
-                playerInput = scan.nextInt();
-                
-                //invalid input prompt will display
-                switch (playerInput) {
-                    case 0:
-                        System.out.println("You need to enter a number between 1-4 to answer, 5 to walk away, or use a lifeline:");
-                        System.out.println("6: 50/50");
-                        System.out.println("7: Phone a Friend");
-                        System.out.println("8: Ask the Audience");
-                        playerInput = -1; //scans for input again
-                        break;
-                //player wants to walk away
-                    case 5:
-                        if(prizeAmount == 0)
-                        {
-                            System.out.println("Are you sure you want to walk away with $0? (y/n)");
-                        }
-                        else
-                        {
-                            System.out.println("Are you sure you want to walk away with " + prize[prizeAmount - 1] + "? (y/n)");
-                        }   //confirm walk away
-                        char response = scan.next().charAt(0);
-                        if(response == 'y' || response == 'Y')
-                        {
-                            walkedAway = true;
-                            end();
-                        }
-                        else
-                        {
-                            System.out.println("Enter your answer: ");
-                            playerInput = -1;
-                        }   break;
-                //50:50 lifeline selected
-                    case 6:
-                        playerInput = FiftyFifty.use(selectQuestion);
-                        lifelinesUsed++;
-                        break;
-                //Phone a friend lifeline
-                    case 7:
-                        playerInput = PhoneAFriend.use(selectQuestion);
-                        lifelinesUsed++;
-                        break;
-                //Ask the audience lifeline
-                    case 8:
-                        playerInput = AskTheAudience.use(selectQuestion);
-                        lifelinesUsed++;
-                        break;
-                    default:
-                        break;
+            case 'A':
+                AskTheAudience.use(selectedQuestion);
+                break;
+            case 'F':
+                FiftyFifty.use(selectedQuestion);
+                askSpecificQuestion(questionNum);
+                break;
+            case 'P':
+                PhoneAFriend.use(selectedQuestion);
+                break;
+            case 'W':
+                String optionString = "Are you sure you want to walk away?";
+                int reply = JOptionPane.showConfirmDialog(window, optionString, "Still want to walk away?", JOptionPane.YES_NO_OPTION);
+                if(reply == JOptionPane.YES_OPTION)
+                {
+                    walkedAway = true;
+                    end();
                 }
-            } catch (java.util.InputMismatchException e)
-            {
-                System.out.println("Invalid input!");
-                System.out.println("Please enter the number of your answer, a lifeline to use or 5 to walk away!");
-                scan.next();
-            }
-        }
-        
-        //check valid answer is received from this object or lifeline object
-        if(playerInput != 5)
-        {
-            checkAnswer(selectQuestion, questionNumber, playerInput);
+                break;
+            default:
+                break;
         }
     }
     
@@ -258,13 +210,12 @@ public class Game //Who Wants to Be a Millionaire game functionality
     if answered correctly move to the next level and the question is removed from list to avoid asking again
     if player is wrong set lost condition and call end() method
     */
-    private void checkAnswer(Question question, int questionNumber, int playerAnswer)
+    public void checkAnswer(int playerAnswer)
     {
-        if(playerAnswer == question.getCorrectAnswer()) //answer is correct
+        if(playerAnswer == selectedQuestion.getCorrectAnswer()) //answer is correct
         {
-            System.out.println("\nCorrect!\n");
             safeHaven(); //checkpoint reached
-            questions.get(currentLevel).remove(questionNumber); //remove used question from list
+            questions.get(currentLevel).remove(questionNum); //remove used question from list
         }
         else //answer is incorrect
         {
@@ -305,40 +256,54 @@ public class Game //Who Wants to Be a Millionaire game functionality
     */
     private void end()
     {
+        window.changeCard("card5");
+        
+        String winningAmount = "";
+        String congrats = "";
+        
         if(walkedAway)
         {
             if(prizeAmount != 0)
             {
-                System.out.println("Congratulations! You walked away with " + prize[prizeAmount-1]);
+                congrats = "Congratulations! You walked away with ";
+                winningAmount = prize[prizeAmount-1];
             }
             else
             {
-                System.out.println("You walked away with $0. You quit before it even started."); 
+                winningAmount = "$0";
+                congrats = "You walked away with $0. You quit before it even started."; 
             }
         }
         
         if (lost)
         {
-            if(currentLevel == 0)
+            switch (currentLevel) 
             {
-                System.out.println("That is incorrect! You lose, unfortunately you walk away with $0");
-            }
-            else if(currentLevel == 1)
-            {
-                System.out.println("That is incorrect! You lose, but you still get to walk away with " + prize[4]);
-            }
-            else if(currentLevel == 2)
-            {
-                System.out.println("That is incorrect! You lose, but you still get to walk away with " + prize[9]);
+                case 0:
+                    winningAmount = "$0";
+                    congrats = "That is incorrect! You lose, unfortunately you walk away with $0";
+                    break;
+                case 1:
+                    winningAmount = prize[5];
+                    congrats = "That is incorrect! You lose, but you still get to walk away with ";
+                    break;
+                case 2:
+                    winningAmount = prize[10];
+                    congrats = "That is incorrect! You lose, but you still get to walk away with ";
+                    break;
+                default:
+                    break;
             }
         }
         
         if(won)
         {
-            System.out.println("CONGRATULATIONS! YOU ARE A MILLIONAIRE!!!");
-            System.out.println("You're taking home $1,000,000!");
-            System.out.println("Thanks for playing!");
+            congrats = "CONGRATULATIONS! YOU ARE A MILLIONAIRE!!!";
         }
+        
+        congrats += winningAmount;
+        window.EndMessage.setText(congrats);
+        
         
         /*
         formula to calculate
