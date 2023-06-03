@@ -54,6 +54,11 @@ public class Question
     {
         return answers;
     }
+
+    public int getLevel() 
+    {
+        return level;
+    }
     
     //displays a question and its answer choices 
     public void printQuestion()
