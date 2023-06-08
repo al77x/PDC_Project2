@@ -57,6 +57,9 @@ public class Game //Who Wants to Be a Millionaire game functionality
     //constructor
     public Game()
     {
+        prizeAmount = 0; //prize amount goes higher each time the player gets a question right
+        prize = new String[]{"$100","$200","$300","$500","$1,000","$2,000", "$4,000", "$8,000","16,000","32,000","64,000","125,000","250,000","$500,000","$1,000,000"};
+        
         conn = null;
         state = null;
         
@@ -67,25 +70,22 @@ public class Game //Who Wants to Be a Millionaire game functionality
         levelProgress = 1;
         random = new Random();
         playing = true;
-        
-        prizeAmount = 0; //prize amount goes higher each time the player gets a question right
-        prize = new String[]{"$100","$200","$300","$500","$1,000","$2,000", "$4,000", "$8,000","16,000","32,000","64,000","125,000","250,000","$500,000","$1,000,000"};
+
+        window = new GUI();
+        window.setVisible(true);
+        window.setGame(this);
+
+        //set to false at start
+        walkedAway = false;
+        won = false;
+        lost = false;
         
         //lifelines
         AskTheAudience = new AskTheAudience();
         PhoneAFriend = new PhoneAFriend();
         FiftyFifty = new FiftyFifty();
         
-        //set to false at start
-        walkedAway = false;
-        won = false;
-        lost = false;
-        
-        getScores();
-        
-        window = new GUI();
-        window.setVisible(true);
-        window.setGame(this);
+        getScores();  
         
         displayScores();
     }
@@ -255,24 +255,34 @@ public class Game //Who Wants to Be a Millionaire game functionality
     If players get question 5 wrong, they leave with nothing. If they get it right, players are guaranteed $1,000 even
     if they answer incorrectly before reaching the next safe haven at Question 10, which is $32,000.
     */
-    private void safeHaven() //reach checkpoint or level up
+    private void safeHaven()
     {
-        if(levelProgress < 5) //user cannot progress to next level
+        switch (levelProgress)
         {
-            levelProgress++;
-            prizeAmount++; //increment prize amount player is currently on
-        }
-        else if(levelProgress == 5 && prizeAmount < 14)
-        {
-            System.out.println("CHECKPOINT REACHED!\n");
-            currentLevel++; //move up a level
-            levelProgress = 1; // reset progression of current level
-            prizeAmount++; // increment prize num player is currently on
-        }
-        else if(prizeAmount == 14)
-        {
-            won = true;
-            end();
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+                levelProgress++;
+                prizeAmount++;
+                break;
+            case 5:
+                if(prizeAmount < 14)
+                {
+                    System.out.println("CHECKPOINT REACHED!\n");
+                    currentLevel++;
+                    levelProgress = 1;
+                    prizeAmount++;
+                }
+                else
+                {
+                    won = true;
+                    end();
+                }
+                break;
+            default:
+                break;
         }
     }
    

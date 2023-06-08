@@ -40,11 +40,11 @@ public class TestGame
         
         game.resetGame();
         
-        boolean actualPlaying = game.getPlaying();
-        Assert.assertTrue(actualPlaying);
+        boolean playing = game.getPlaying();
+        Assert.assertTrue(playing);
         
-        int actualLevel = game.getLevel();
+        int level = game.getLevel();
         int expectedLevel = 0;
-        Assert.assertEquals(expectedLevel, actualLevel);
+        Assert.assertEquals(expectedLevel, level);
     }
 }
