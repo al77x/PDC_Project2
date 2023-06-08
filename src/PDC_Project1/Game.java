@@ -4,12 +4,19 @@
  */
 package PDC_Project1;
 
+import java.lang.reflect.InvocationTargetException;
+import java.sql.Connection;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Random;
-import java.util.Scanner;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Collections;
+import java.util.logging.*;
+import java.sql.DriverManager;
 
 /**
  *
@@ -30,26 +37,35 @@ public class Game //Who Wants to Be a Millionaire game functionality
     private int prizeAmount; //current prize player is on
     private int lifelinesUsed; // check lifelines used
     private int questionCounter = 0; //displays how many questions so far
-    FileSaveScores scoreData = new FileSaveScores(); 
+    public ArrayList<Scores> scores;
+    private Scores finalScore;
     private int questionNum;
     public Question selectedQuestion;
     private GUI window;
+    private Connection conn; //database
+    private Statement state;
     
     //conditions for the game state
     private boolean walkedAway;
     private boolean lost;
     private boolean won;
-    Scanner scan;
+    
+    public static String url = "jdbc:derby:ScoresDB; create=true";
+    public static String username = "pdc";
+    public static String password = "pdc"; 
     
     //constructor
     public Game()
     {
+        conn = null;
+        state = null;
+        
+        connToDB();
         questions = questionsList();
         
         currentLevel = 0;
         levelProgress = 1;
         random = new Random();
-        scan = new Scanner(System.in);
         playing = true;
         
         prizeAmount = 0; //prize amount goes higher each time the player gets a question right
@@ -64,13 +80,14 @@ public class Game //Who Wants to Be a Millionaire game functionality
         walkedAway = false;
         won = false;
         lost = false;
- 
-        //load the scoreboard
-        //scoreData.getScores();
+        
+        getScores();
         
         window = new GUI();
         window.setVisible(true);
         window.setGame(this);
+        
+        displayScores();
     }
     
     public void resetGame()
@@ -100,12 +117,42 @@ public class Game //Who Wants to Be a Millionaire game functionality
             btnLifeline.setEnabled(true);
         }
         
+        scores = new ArrayList<Scores>();
+        connToDB();
+        getScores();
+        
+        questions = new ArrayList<ArrayList>();
+        questions = questionsList();
+        
+        displayScores();
+        
+        play();
     }
 
-    //getters
-    public boolean isPlaying() 
+    //getters and setters
+    public int getLevel()
+    {
+        return currentLevel;
+    }
+    
+    public void setLevel(int level)
+    {
+        currentLevel = level;
+    }
+    
+    public boolean getPlaying()
     {
         return playing;
+    }
+    
+    public void play()
+    {
+        askQuestion();
+    }
+    
+    public void setPlaying(boolean play)
+    {
+        playing = play;
     }
     
     /*
@@ -149,15 +196,14 @@ public class Game //Who Wants to Be a Millionaire game functionality
         
         for (int i = 0; i < window.qButtons.size(); i++)
         {
-            window.qButtons.get(i).setText((i+1) + ") " + selectedQuestion.getAnswers());
+            window.qButtons.get(i).setText((i+1) + ") " + selectedQuestion.getAnswers()[i]);
         }
     }
     
     /*
     check user answer against correct answer
-    if user gets it right they progress to the next level
-    the question is removed from the list so it can't be asked again
-    if wrong, end program
+    if answered correctly move to the next level and the question is removed from list to avoid asking again
+    if player is wrong set lost condition and call end() method
     */
     public void checkAnswer(int userAnswer)
     {
@@ -174,9 +220,8 @@ public class Game //Who Wants to Be a Millionaire game functionality
             end();
         }
     }
-    
-   
-    
+
+    //handling the usage of different lifelines during the game
     public void useLifeLine(char lifeline)
     {
         switch(lifeline)
@@ -193,7 +238,7 @@ public class Game //Who Wants to Be a Millionaire game functionality
                 break;
             case 'W':
                 String optionString = "Are you sure you want to walk away?";
-                int reply = JOptionPane.showConfirmDialog(window, optionString, "Still want to walk away?", JOptionPane.YES_NO_OPTION);
+                int reply = JOptionPane.showConfirmDialog(window, optionString, "Confirm walk away?", JOptionPane.YES_NO_OPTION);
                 if(reply == JOptionPane.YES_OPTION)
                 {
                     walkedAway = true;
@@ -202,25 +247,6 @@ public class Game //Who Wants to Be a Millionaire game functionality
                 break;
             default:
                 break;
-        }
-    }
-    
-    /*
-    check user answer against correct answer
-    if answered correctly move to the next level and the question is removed from list to avoid asking again
-    if player is wrong set lost condition and call end() method
-    */
-    public void checkAnswer(int playerAnswer)
-    {
-        if(playerAnswer == selectedQuestion.getCorrectAnswer()) //answer is correct
-        {
-            safeHaven(); //checkpoint reached
-            questions.get(currentLevel).remove(questionNum); //remove used question from list
-        }
-        else //answer is incorrect
-        {
-            lost = true;
-            end();
         }
     }
     
@@ -252,7 +278,7 @@ public class Game //Who Wants to Be a Millionaire game functionality
    
     /*
     terminate the program
-    calulcates the player's score
+    calculate the player's score
     */
     private void end()
     {
@@ -271,7 +297,7 @@ public class Game //Who Wants to Be a Millionaire game functionality
             else
             {
                 winningAmount = "$0";
-                congrats = "You walked away with $0. You quit before it even started."; 
+                congrats = "You quit before it even started. You walked away with "; 
             }
         }
         
@@ -281,7 +307,7 @@ public class Game //Who Wants to Be a Millionaire game functionality
             {
                 case 0:
                     winningAmount = "$0";
-                    congrats = "That is incorrect! You lose, unfortunately you walk away with $0";
+                    congrats = "That is incorrect! You lose, unfortunately you walk away with ";
                     break;
                 case 1:
                     winningAmount = prize[5];
@@ -304,32 +330,143 @@ public class Game //Who Wants to Be a Millionaire game functionality
         congrats += winningAmount;
         window.EndMessage.setText(congrats);
         
+        playing = false;
+    }
+    
+    /*
+    JDBC for Scores and Questions
+    */
+    
+    
+    private void getScores()
+    {
+        //initialize scores list
+        scores = new ArrayList<Scores>();
+        ResultSet rs = null;
         
-        /*
+        try
+        {
+            //execute SELECT query to fetch scores from the database
+            rs = state.executeQuery("SELECT * FROM SCORES");
+            
+            //iterate through the result set and create Scores objects
+            while(rs.next())
+            {
+                Scores s = new Scores(rs.getString("scorename"), rs.getInt("score"));
+                scores.add(s);
+            }
+        }catch (SQLException ex)
+        {
+            Logger.getLogger(Game.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        //sort scores in descending order
+        Collections.sort(scores); //sort scores low to high
+        Collections.reverse(scores); //reverse to display high to low
+    }
+    
+    public void saveScore()
+    {
+          /*
         formula to calculate
         score = prizeAmount * 5 - amount of lifelines used * 3
         e.g. prizeAmount = 32,000 (index 10) - lets say we used 3 lifelines * 3 = 41 
         (assisted via chatGPT)
         */
         int score = (prizeAmount * 5) - (lifelinesUsed * 3);
-     
-        System.out.println("\nYour score is " + score);
-        String saveName;
-        System.out.println("Enter your name to save your score, or enter 0 to quit without saving!");
         
-        //player enters their name
-        saveName = scan.next();
+        //prompt the user to enter their name for saving the score
+        String saveName = JOptionPane.showInputDialog(window, "Enter your name to save your score:");
         
-        /*
-        if user wants to save score
-        */
-        
-        if(saveName.charAt(0) != '0') //saves the score if user inputs 0
+        if(saveName != null)
         {
-            scoreData.finalScore = new Scores(saveName, score);
-            scoreData.saveScore();
+            saveName = saveName.substring(0, Math.min(saveName.length(), 50));
+            finalScore = new Scores(saveName, score);
+            scores.add(finalScore);
+            
+            //sort scores in descending order
+            Collections.sort(scores);
+            Collections.reverse(scores);
+            
+            try
+            {
+                Scores s = (Scores) finalScore;
+                ResultSet row = state.executeQuery("SELECT MAX(SCOREID) FROM PDC.SCORES");
+                int scoreID = 1;
+                
+                if(row.next())
+                {
+                    scoreID = row.getInt(1) + 1;
+                }
+                
+                state.executeUpdate("INSERT INTO PDC.SCORES (SCOREID, SCORENAME, SCORE) VALUES ("+ scoreID +",'" + s.getName() + "'," + s.getScore() + ")");
+            } catch (SQLException ex)
+            {
+                Logger.getLogger(Game.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+            //display the scores in a table after player enters their name
+            displayScores();
         }
-        playing = false;
+    }
+    
+    public void displayScores()
+    {
+        //create arrays to store the data for the table columns
+        Integer[] nums = new Integer[scores.size()];
+        String[] names = new String[scores.size()];
+        Integer[] scoresArr = new Integer[scores.size()];
+        
+        //get the table model and reset its column and row counts
+        DefaultTableModel dtm = (DefaultTableModel) window.jTable1.getModel();
+        dtm.setColumnCount(0);
+        dtm.setRowCount(0);
+        
+        //populate the arrays with data from the scores list
+        for(int i = 0; i < scores.size(); i++)
+        {
+            nums[i] = i+1;
+            names[i] = scores.get(i).getName();
+            scoresArr[i] = scores.get(i).getScore();
+        }
+        
+        //add the arrays as columns to the table model
+        dtm.addColumn("Place", nums);
+        dtm.addColumn("Name", names);
+        dtm.addColumn("Score", scoresArr);
+    }
+    
+    //connect to the database
+    private void connToDB()
+    {
+        //embedded driver
+        String driver = "org.apache.derby.jdbc.EmbeddedDriver";
+        
+        //assisted via ChatGPT
+        try {
+            Class<?> driverClass = Class.forName(driver);
+            Object driverInstance = driverClass.getDeclaredConstructor().newInstance();
+            conn = DriverManager.getConnection(url, username, password);
+            state = conn.createStatement();
+        } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException | SQLException ex)
+        {
+            Logger.getLogger(Game.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    //close the database connection
+    public void closeDBConn()
+    {
+        try
+        {
+            //assisted via ChatGPT
+            state.close();
+            //DriverManager.getConnection("jdbc:derby:;shutdown=true");
+            conn.close();
+        } catch (SQLException ex)
+        {
+            
+        }
     }
     
     /*
@@ -338,80 +475,58 @@ public class Game //Who Wants to Be a Millionaire game functionality
     */
     public ArrayList questionsList()
     {
+        //create ArrayLists to store questions for each level
         ArrayList<Question> level0 = new ArrayList();
         ArrayList<Question> level1 = new ArrayList();
         ArrayList<Question> level2 = new ArrayList();
         
-        Question q0 = new Question(0, "What sort of animal is Walt Disney's Dumbo?", new String[]{"Deer","Rabbit","Elephant","Donkey"}, 3);
-        Question q1 = new Question(0, "A Magnet would most likely attract which of the following?", new String[]{"Metal","Plastic","Wood","The wrong man"},1);
-        Question q2 = new Question(0, "Which of these names is NOT in the title of a Shakespeare play?", new String[]{"Hamlet","Romeo","Macbeth","Darren"}, 4);
-        Question q3 = new Question(0, "Where did Scotch whisky originate?", new String[]{"Ireland","Wales","The United States","Scotland"}, 4);
-        Question q4 = new Question(0, "In fancy hotels, it is traditional for what tantalizing treat to be left on your pillow?", new String[]{"A pretzel","An Apple","A mint","A photo of Wolf Blitzer"},3);
-        Question q5 = new Question(0, "Which of these pairs of apps offers roughly the same type of service?", new String[]{"Snapchat and Grubhub","Whatsapp and SHAREit","TikTok and Spotify","Lyft and Uber"}, 4);
-        Question q6 = new Question(0, "In which of these films does Whoopi Goldberg dress up as a nun?", new String[]{"Sister Act","Ghost","The Color Purple","How Judas Got His Groove Back"}, 1);
-        Question q7 = new Question(0, "A geologist would likely be LEAST helpful for answering questions about which of the following?", new String[]{"Granite Boulders","Precious Stones","Igneous rocks","Fruity Pebbles"}, 4);
-        Question q8 = new Question(0, "In history books, leaders named Alexander and Catherine both share what flattering title?", new String[]{"The Ferocious","The Great","The Unruly","The Eco-Conscious"}, 2);
-        Question q9 = new Question(0, "What notable part of our nation's topography accounts for roughly 20 percent of the fresh water on Earth?", new String[]{"Death Valley","Grand Canyon","The Great Lakes","Mark Zuckerburg's hot tub"}, 3);
-         
-        //adding the questions to its assigned level, in this case level 1 (index 0)
-        level0.add(q0);
-        level0.add(q1);
-        level0.add(q2);
-        level0.add(q3);
-        level0.add(q4);
-        level0.add(q5);
-        level0.add(q6);
-        level0.add(q7);
-        level0.add(q8);
-        level0.add(q9);
+        ResultSet rs = null;
         
-        Question q10 = new Question(1, "What word can be put in front of the words 'track', 'way', and 'horse' to make three other words?", new String[]{"Road","Race","Cross","Sound"}, 2);
-        Question q11 = new Question(1, "How many X's are there on a regular clock face with Roman numerals?", new String[]{"3","2","4","5"}, 3);
-        Question q12 = new Question(1, "What name is given to the revolving belt machinery in an airport that delivers checked luggage from the plane to baggage reclaim?", new String[]{"Hangar","Terminal","Concourse","Carousel"}, 4);
-        Question q13 = new Question(1, "Obstetrics is a branch of medicine particulary concerned with what?", new String[]{"Childbirth","Broken bones","Heart Conditions","Old age"}, 1);
-        Question q14 = new Question(1, "Which of these religious observances lasts for the shortest period of time during the calendar year?", new String[]{"Ramadan","Diwali","Lent","Hanukkah"}, 2);
-        Question q15 = new Question(1, "What does the word loquacious mean?", new String[]{"Angry","Chatty","Beautiful","Shy"}, 2);
-        Question q16 = new Question(1, "What was the only painting sold by Vincent van Gogh during his lifetime?", new String[]{"Sunflowers","The Starry Night","The Red Vineyard","The Yellow House"}, 3);
-        Question q17 = new Question(1, "What member of the big cat family cannot retract its claws?", new String[]{"Cheetah","Wild Cat","Lion","Tiger"}, 1);
-        Question q18 = new Question(1, "Canberra is the capital city of which country?", new String[]{"Australia","Philippines","New Zealand","Vietnam"}, 1);
-        Question q19 = new Question(1, "The word \"aristocracy\" literally means power in the hands of whom?", new String[]{"The few","The best","The barons","The rich"}, 2);
+        //check if the connection and statement objects are not null
+        if(conn != null && state != null)
+        {
+            try
+            {
+                //execute SELECT query to fetch questions from the database
+                rs = state.executeQuery("SELECT * FROM QUESTIONS");
+                
+                while(rs.next())
+                {
+                    String[] answers = {rs.getString("ANS1"),rs.getString("ANS2"),rs.getString("ANS3"),rs.getString("ANS4")};
+                    Question q = new Question(rs.getInt("QLEVEL"), rs.getString("QUESTION"), answers, rs.getInt("CORRANS"));
+                    
+                    switch (q.getLevel())
+                    {
+                        case 0:
+                            level0.add(q);
+                            break;
+                        case 1:
+                            level1.add(q);
+                            break;
+                        case 2:
+                            level2.add(q);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            } catch (SQLException ex)
+            {
+                Logger.getLogger(Game.class.getName()).log(Level.SEVERE, null, ex);
+                connToDB();
+            }
+        }
+        else
+        {
+            //if the connection or statement is null, establish a new connection
+            connToDB();
+            
+            if(conn != null && state != null)
+            {
+                questionsList();
+            }
+        }
         
-        //adding the questions to its assigned level, in this case level 2 (index 1)
-        level1.add(q10);
-        level1.add(q11);
-        level1.add(q12);
-        level1.add(q13);
-        level1.add(q14);
-        level1.add(q15);
-        level1.add(q16);
-        level1.add(q17);
-        level1.add(q18);
-        level1.add(q19);
-        
-        Question q20 = new Question(2, "The Earth is approximately how many miles away from the Sun", new String[]{"9.3 million","39 million","93 million","193 million"}, 3);
-        Question q21 = new Question(2, "Which insect shorted out an early supercomputer and inspired the term \"computer bug\"?", new String[]{"Moth","Roach","Fly","Japanese Beetle"}, 1);
-        Question q22 = new Question(2, "Which of the following men does not have a chemical element named for him?", new String[]{"Albert Einstein","Niels Bohr","Isaac Newton","Enrico Fermi"}, 3);
-        Question q23 = new Question(2, "In the children's book series, where is Paddington Bear originally from?", new String[]{"India","Peru","Canada","Iceland"}, 2);
-        Question q24 = new Question(2, "Now used to refer to a cat, the word \"tabby\" is derived from the name of a district of what world capital?", new String[]{"Baghdad","New Delhi","Cairo","Moscow"}, 1);
-        Question q25 = new Question(2, "Neurologists believe that the brain's medial ventral prefrontal cortex is activated when you do what?", new String[]{"Have a panic attack","Remember a name","Get a joke","Listen to music"}, 3);
-        Question q26 = new Question(2, "If you planted the seeds of Quercus robur, what would grow?", new String[]{"Trees","Flowers","Vegetables","Grain"}, 1);
-        Question q27 = new Question(2, "Which of the following landlocked countries is entirely contained within another country?", new String[]{"Lesotho","Burkina Faso","Mongolia","Luxembourg"}, 1);
-        Question q28 = new Question(2, "During World War II, US soldiers used the first commercial aerosol cans to hold what?", new String[]{"Cleaning Fluid","Antiseptic","Shaving Cream","Insecticide"}, 4);
-        Question q29 = new Question(2, "Who did artist Grant Wood use as the model for the farmer in his classic painting \"American Gothic\"?", new String[]{"Travelling Salesman","Local sheriff","His dentist","His butcher"}, 3);
-        
-        //adding the questions to its assigned level, in this case level 3 (index 2)
-        level2.add(q20);
-        level2.add(q21);
-        level2.add(q22);
-        level2.add(q23);
-        level2.add(q24);
-        level2.add(q25);
-        level2.add(q26);
-        level2.add(q27);
-        level2.add(q28);
-        level2.add(q29);
-        
-        //store 3 levels of questions
         ArrayList lists = new ArrayList<>();
         lists.add(level0);
         lists.add(level1);
@@ -420,3 +535,4 @@ public class Game //Who Wants to Be a Millionaire game functionality
         return lists;
     }
 }
+    

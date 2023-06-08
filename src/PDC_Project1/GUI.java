@@ -49,9 +49,9 @@ public class GUI extends java.awt.Frame
         qButtons.add(Answer4);
         
         btnLifelines = new ArrayList<JButton>();
-        btnLifelines.add(ATA);
-        btnLifelines.add(PAF);
-        btnLifelines.add(FF);
+        btnLifelines.add(AskTheAudience);
+        btnLifelines.add(PhoneAFriend);
+        btnLifelines.add(FiftyFifty);
         
         DefaultTableModel model=new DefaultTableModel()
         {
@@ -98,9 +98,9 @@ public class GUI extends java.awt.Frame
         lblForPrize = new javax.swing.JLabel();
         pnlLLButtons = new javax.swing.JPanel();
         Question = new javax.swing.JLabel();
-        ATA = new javax.swing.JButton();
-        FF = new javax.swing.JButton();
-        PAF = new javax.swing.JButton();
+        AskTheAudience = new javax.swing.JButton();
+        FiftyFifty = new javax.swing.JButton();
+        PhoneAFriend = new javax.swing.JButton();
         WalkAway = new javax.swing.JButton();
         Scoreboard = new javax.swing.JPanel();
         lblScore = new javax.swing.JLabel();
@@ -245,31 +245,31 @@ public class GUI extends java.awt.Frame
 
         QuestionDisplay.add(pnlLLButtons);
 
-        ATA.setBackground(new java.awt.Color(153, 0, 153));
-        ATA.setFont(new java.awt.Font("Arial", 1, 12)); // NOI18N
-        ATA.setForeground(new java.awt.Color(255, 255, 255));
-        ATA.setText("Ask The Audience");
-        ATA.addActionListener(new java.awt.event.ActionListener() {
+        AskTheAudience.setBackground(new java.awt.Color(153, 0, 153));
+        AskTheAudience.setFont(new java.awt.Font("Arial", 1, 12)); // NOI18N
+        AskTheAudience.setForeground(new java.awt.Color(255, 255, 255));
+        AskTheAudience.setText("Ask The Audience");
+        AskTheAudience.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 lifelineActionPerformed(evt);
             }
         });
 
-        FF.setBackground(new java.awt.Color(153, 153, 0));
-        FF.setFont(new java.awt.Font("Arial", 1, 12)); // NOI18N
-        FF.setForeground(new java.awt.Color(255, 255, 255));
-        FF.setText("50/50");
-        FF.addActionListener(new java.awt.event.ActionListener() {
+        FiftyFifty.setBackground(new java.awt.Color(153, 153, 0));
+        FiftyFifty.setFont(new java.awt.Font("Arial", 1, 12)); // NOI18N
+        FiftyFifty.setForeground(new java.awt.Color(255, 255, 255));
+        FiftyFifty.setText("50/50");
+        FiftyFifty.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 lifelineActionPerformed(evt);
             }
         });
 
-        PAF.setBackground(new java.awt.Color(51, 153, 0));
-        PAF.setFont(new java.awt.Font("Arial", 1, 12)); // NOI18N
-        PAF.setForeground(new java.awt.Color(255, 255, 255));
-        PAF.setText("Phone a Friend");
-        PAF.addActionListener(new java.awt.event.ActionListener() {
+        PhoneAFriend.setBackground(new java.awt.Color(51, 153, 0));
+        PhoneAFriend.setFont(new java.awt.Font("Arial", 1, 12)); // NOI18N
+        PhoneAFriend.setForeground(new java.awt.Color(255, 255, 255));
+        PhoneAFriend.setText("Phone a Friend");
+        PhoneAFriend.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 lifelineActionPerformed(evt);
             }
@@ -292,11 +292,11 @@ public class GUI extends java.awt.Frame
             .addComponent(AnswerButtons, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(QuestionScreenLayout.createSequentialGroup()
                 .addGap(182, 182, 182)
-                .addComponent(ATA)
+                .addComponent(AskTheAudience)
                 .addGap(0, 0, 0)
-                .addComponent(FF, javax.swing.GroupLayout.PREFERRED_SIZE, 132, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(FiftyFifty, javax.swing.GroupLayout.PREFERRED_SIZE, 132, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
-                .addComponent(PAF, javax.swing.GroupLayout.PREFERRED_SIZE, 132, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(PhoneAFriend, javax.swing.GroupLayout.PREFERRED_SIZE, 132, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
                 .addComponent(WalkAway, javax.swing.GroupLayout.PREFERRED_SIZE, 132, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -310,9 +310,9 @@ public class GUI extends java.awt.Frame
             .addGroup(QuestionScreenLayout.createSequentialGroup()
                 .addGap(31, 31, 31)
                 .addGroup(QuestionScreenLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(ATA)
-                    .addComponent(FF)
-                    .addComponent(PAF)
+                    .addComponent(AskTheAudience)
+                    .addComponent(FiftyFifty)
+                    .addComponent(PhoneAFriend)
                     .addComponent(WalkAway))
                 .addGap(18, 18, 18)
                 .addComponent(QuestionDisplay, javax.swing.GroupLayout.PREFERRED_SIZE, 329, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -509,88 +509,131 @@ public class GUI extends java.awt.Frame
      * Exit the Application
      */
     private void exitForm(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_exitForm
-        
+        System.exit(0);
     }//GEN-LAST:event_exitForm
 
     private void ViewScoreboardActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_ViewScoreboardActionPerformed
     {//GEN-HEADEREND:event_ViewScoreboardActionPerformed
-        
+        cards.show(CardHolder, "card4");
     }//GEN-LAST:event_ViewScoreboardActionPerformed
 
     private void Start1ActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_Start1ActionPerformed
     {//GEN-HEADEREND:event_Start1ActionPerformed
 
-          
+        cards.show(CardHolder, "card3");  
     }//GEN-LAST:event_Start1ActionPerformed
 
     private void QuitActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_QuitActionPerformed
     {//GEN-HEADEREND:event_QuitActionPerformed
-        
+        this.dispose();
     }//GEN-LAST:event_QuitActionPerformed
 
     private void btnAnswerActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnAnswerActionPerformed
     {//GEN-HEADEREND:event_btnAnswerActionPerformed
+        int answer = -1;
+        if(evt.getSource() == Answer1)
+        {
+           answer = 1; 
+        }
+        else if(evt.getSource() == Answer2)
+        {
+            answer = 2;
+        }
+        else if(evt.getSource() == Answer3)
+        {
+            answer = 3;
+        }
+        else if(evt.getSource() == Answer4)
+        {
+            answer = 4;
+        }
         
+        thisGame.checkAnswer(answer);
     }//GEN-LAST:event_btnAnswerActionPerformed
 
     private void lifelineActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_lifelineActionPerformed
     {//GEN-HEADEREND:event_lifelineActionPerformed
+        char lifelineType = '-';
+        JButton source = (JButton)evt.getSource();
+        if(source == AskTheAudience)
+        {
+            lifelineType = 'A';
+            source.setEnabled(false);
+        }
+        else if(source == PhoneAFriend)
+        {
+            lifelineType = 'P';
+            source.setEnabled(false);
+        }
+        else if(source == FiftyFifty)
+        {
+            lifelineType = 'F';
+            source.setEnabled(false);
+        }
+        else if(source == WalkAway)
+        {
+            lifelineType = 'W';
+        }
         
+        thisGame.useLifeLine(lifelineType);
     }//GEN-LAST:event_lifelineActionPerformed
 
     private void QuitViewScoresActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_QuitViewScoresActionPerformed
     {//GEN-HEADEREND:event_QuitViewScoresActionPerformed
-        
+        cards.show(CardHolder, "card4");
     }//GEN-LAST:event_QuitViewScoresActionPerformed
 
     private void QuitNoScoreActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_QuitNoScoreActionPerformed
     {//GEN-HEADEREND:event_QuitNoScoreActionPerformed
-        
+        this.dispose();
     }//GEN-LAST:event_QuitNoScoreActionPerformed
 
     private void PlayAgainActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_PlayAgainActionPerformed
     {//GEN-HEADEREND:event_PlayAgainActionPerformed
-        
+        thisGame.resetGame();
+        cards.show(CardHolder, "card2");
     }//GEN-LAST:event_PlayAgainActionPerformed
 
     private void BacktoMenuActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_BacktoMenuActionPerformed
     {//GEN-HEADEREND:event_BacktoMenuActionPerformed
-        
+        thisGame.resetGame();
+        cards.show(CardHolder, "card2");
     }//GEN-LAST:event_BacktoMenuActionPerformed
 
     private void SaveYesActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_SaveYesActionPerformed
     {//GEN-HEADEREND:event_SaveYesActionPerformed
-        
+        thisGame.saveScore();
+        cards.show(CardHolder, "card4");
     }//GEN-LAST:event_SaveYesActionPerformed
 
     public void changeCard(String cardName)
     {
-        
+        cards.show(CardHolder, cardName);
     }
    
     public void setQuestionText(String text)
     {
-        
+        Question.setText(text);
     }
     
     public void setPrize(String prize)
     {
-        
+        lblForPrize.setText(prize);
     }
     
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton ATA;
     private javax.swing.JButton Answer1;
     private javax.swing.JButton Answer2;
     private javax.swing.JButton Answer3;
     private javax.swing.JButton Answer4;
     private javax.swing.JPanel AnswerButtons;
+    private javax.swing.JButton AskTheAudience;
     private javax.swing.JButton BacktoMenu;
     private javax.swing.JPanel CardHolder;
     public javax.swing.JLabel EndMessage;
-    private javax.swing.JButton FF;
-    private javax.swing.JButton PAF;
+    private javax.swing.JButton FiftyFifty;
+    private javax.swing.JButton PhoneAFriend;
     private javax.swing.JButton PlayAgain;
     private javax.swing.JLabel Question;
     private javax.swing.JPanel QuestionDisplay;

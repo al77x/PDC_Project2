@@ -67,12 +67,12 @@ public class Question
         
         for (int count = 0; count < 4; count++)
         {
-            try
-            {
-                Thread.sleep(1000); //1 second delay to print the answers
-            } catch (InterruptedException e) {
-                System.out.println("Interrupted");
-            }
+//            try
+//            {
+//                Thread.sleep(1000); //1 second delay to print the answers
+//            } catch (InterruptedException e) {
+//                System.out.println("Interrupted");
+//            }
             System.out.println((count + 1) + ") " + answers[count]);
         }
     }

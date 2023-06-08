@@ -26,14 +26,13 @@ public class FiftyFifty extends Lifeline
         }
         
         //otherwise if it has not been used, the lifeline is being used in this scenario
-
         String text1 = "You have used the 50:50 lifeline!";
         String text2 = "Two answers have been removed from the options.";
         
         Random random = new Random();
         
-        int remove1 = 0;
-        int remove2 = 0;
+        int remove1 = -1;
+        int remove2 = -1;
         
         boolean option1 = false;
         boolean option2 = false;
